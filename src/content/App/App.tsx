@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react"
+import { useEffect, useState } from "react"
 import "./App.css"
 import CalendarContainer from "../CalendarContainer/CalendarContainer"
 import { ISectionData, Term, Views } from "./App.types"
@@ -10,9 +10,9 @@ import {
   ColorTheme,
   getNewSectionColor,
 } from "../Settings/Theme/courseColors"
-import { ModalLayer, ModalDispatchContext, ModalPreset } from "../ModalLayer"
+import { ModalLayer } from "../ModalLayer"
 import { versionOneFiveZeroUpdateNotification } from "../utils"
-import { findCourseId } from "../../backends/scheduler/nameSearchApi"
+import { readSectionData, writeSectionData } from "../../storage/sectionStorage"
 
 function App() {
   const [newSection, setNewSection] = useState<ISectionData | null>(null)
@@ -23,38 +23,6 @@ function App() {
   const [currentView, setCurrentView] = useState<Views>(Views.calendar)
   const [colorTheme, setColorTheme] = useState<ColorTheme>(ColorTheme.Green)
 
-  const dispatchModal = useContext(ModalDispatchContext)
-
-  const handleSectionImport = async (sections: ISectionData[]) => {
-    dispatchModal({
-      preset: ModalPreset.ImportStatus,
-      additionalData: "Loading...",
-    })
-    const fetchedCourseIDs: string[] = []
-    await sections.reduce(async (promise, section) => {
-      await promise
-      if (!section.courseID) {
-        const courseID = await findCourseId(section.code)
-        if (!courseID) {
-          return
-        }
-        fetchedCourseIDs.push(courseID)
-      }
-    }, Promise.resolve())
-
-    const newSections = sections.map((s) => {
-      if (s.courseID) return s
-      return {
-        ...s,
-        courseID: fetchedCourseIDs.shift(),
-      }
-    })
-
-    setSections(newSections)
-  }
-
-  // const prevColorTheme = useRef(colorTheme);
-  // const prevSections = useRef(sections);
   // Sync initial state with chrome storage on mount
   useEffect(() => {
     const syncInitialState = () => {
@@ -75,14 +43,6 @@ function App() {
         (result) => {
           if (result.colorTheme !== undefined) {
             setColorTheme(result.colorTheme)
-          }
-          if (result.sections !== undefined) {
-            setSections(
-              assignColors(
-                result.sections,
-                result.colorTheme || ColorTheme.Green
-              )
-            )
           }
           if (result.currentWorklistNumber !== undefined) {
             setCurrentWorklistNumber(result.currentWorklistNumber)
@@ -115,11 +75,6 @@ function App() {
 
   // Update chrome storage whenever relevant state changes
   useEffect(() => {
-    chrome.storage.local.set({ sections })
-    // alert(JSON.stringify(sections, null, 2))
-  }, [sections])
-
-  useEffect(() => {
     chrome.storage.local.set({ currentWorklistNumber })
   }, [currentWorklistNumber])
 
@@ -151,13 +106,17 @@ function App() {
       colorTheme
     )
 
-    setSections([...sections, updatedNewSection])
+    const updatedSections = [...sections, updatedNewSection]
+    setSections(updatedSections)
+    writeSectionData(updatedSections)
     setNewSection(null)
     chrome.storage.local.set({ newSection: null })
   }
 
   const handleDeleteSection = (sectionToDelete: ISectionData) => {
-    setSections(sections.filter((s) => s !== sectionToDelete))
+    const updatedSections = sections.filter((s) => s !== sectionToDelete)
+    setSections(updatedSections)
+    writeSectionData(updatedSections)
   }
 
   const handleCancelNewSection = () => {
@@ -170,6 +129,7 @@ function App() {
       (x) => x.worklistNumber !== currentWorklistNumber
     )
     setSections(updatedSections)
+    writeSectionData(updatedSections)
   }
 
   return (
@@ -188,7 +148,6 @@ function App() {
           <div className="CalendarViewContainer">
             <CalendarContainer
               sections={sections}
-              setSections={setSections}
               newSection={newSection}
               setSectionConflict={setSectionConflict}
               currentWorklistNumber={currentWorklistNumber}

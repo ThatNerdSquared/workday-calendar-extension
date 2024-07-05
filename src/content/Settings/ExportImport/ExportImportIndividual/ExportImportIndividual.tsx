@@ -8,7 +8,6 @@ import ProgressBar from "../../../ProgressBar/ProgressBar"
 
 interface IProps {
   sections: ISectionData[]
-  setSections: (data: ISectionData[]) => void
   handleSectionImport: (data: ISectionData[]) => void
 }
 

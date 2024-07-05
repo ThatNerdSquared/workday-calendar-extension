@@ -100,7 +100,6 @@ const ExportImport = ({ sections, setSections }: IProps) => {
       <hr className="Divider" />
       <ExportImportIndividual
         sections={sections}
-        setSections={setSections}
         handleSectionImport={handleSectionImport}
       />
       <div className="ExportImportButtonContainer">
