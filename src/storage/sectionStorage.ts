@@ -1,6 +1,7 @@
 import Browser from "webextension-polyfill"
 import { findCourseId } from "../backends/scheduler/nameSearchApi"
 import { ISectionData, PartialSectionData } from "../content/App//App.types"
+import { handleProgressUpdate } from "../content/ProgressBar/ProgressBar"
 import {
   assignColors,
   ColorTheme,
@@ -35,6 +36,7 @@ const populateCourseIDs = async (
       courseID: await findCourseId(section.code),
     }
     newSections.push(newSection)
+    handleProgressUpdate(newSections.length / oldSections.length)
   }
   return assignColors(newSections, ColorTheme.Green)
 }

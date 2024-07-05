@@ -65,6 +65,7 @@ function App() {
       }
     }
 
+    readSectionData().then(setSections);
     syncInitialState()
     chrome.storage.onChanged.addListener(handleStorageChange)
     versionOneFiveZeroUpdateNotification()
@@ -83,18 +84,10 @@ function App() {
   }, [colorTheme])
 
   useEffect(() => {
-    // Check if there is a real change to trigger the update
-    // if (prevColorTheme.current !== colorTheme || JSON.stringify(prevSections.current) !== JSON.stringify(sections)) {
     const newSections = assignColors(sections, colorTheme)
-
     if (JSON.stringify(newSections) !== JSON.stringify(sections)) {
       setSections(newSections)
     }
-
-    // Update refs
-    // prevColorTheme.current = colorTheme;
-    // prevSections.current = sections;
-    // }
   }, [colorTheme, sections]) // React only if these values change
 
   const handleAddNewSection = () => {

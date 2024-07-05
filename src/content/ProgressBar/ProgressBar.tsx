@@ -7,6 +7,15 @@ interface EventDetail {
   progress: number
 }
 
+const handleProgressUpdate = (newProgress: number) => {
+  const progressEvent = new CustomEvent("progress", {
+    detail: {
+      progress: newProgress,
+    },
+  })
+  document.dispatchEvent(progressEvent)
+}
+
 const ProgressBar = (props: IProps) => {
   const [progress, setProgress] = useState(0)
 
@@ -27,4 +36,4 @@ const ProgressBar = (props: IProps) => {
   )
 }
 
-export default ProgressBar
+export { ProgressBar, handleProgressUpdate }
