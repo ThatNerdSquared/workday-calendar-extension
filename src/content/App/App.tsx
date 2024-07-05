@@ -65,7 +65,7 @@ function App() {
       }
     }
 
-    readSectionData().then(setSections);
+    readSectionData().then(setSections)
     syncInitialState()
     chrome.storage.onChanged.addListener(handleStorageChange)
     versionOneFiveZeroUpdateNotification()

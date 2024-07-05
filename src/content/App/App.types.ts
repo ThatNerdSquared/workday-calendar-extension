@@ -28,7 +28,7 @@ export type SectionDetail = {
   dateRange: string
 }
 
-export interface PartialSectionData {
+export interface ISectionData {
   code: string
   name: string
   instructors: string[]
@@ -36,15 +36,6 @@ export interface PartialSectionData {
   terms: Set<Term>
   sectionDetails: SectionDetail[]
   worklistNumber: number
-}
-
-export interface ColoredSection {
   color: string
+  courseID?: string
 }
-
-export interface SectionWithID {
-  courseID: string | null
-}
-
-export type UncoloredSection = PartialSectionData & SectionWithID
-export type ISectionData = PartialSectionData & ColoredSection & SectionWithID

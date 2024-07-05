@@ -1,4 +1,4 @@
-import { ISectionData, PartialSectionData, UncoloredSection } from "../../App/App.types"
+import { ISectionData } from "../../App/App.types"
 import { getCourseCode } from "../../Calendar/calendarHelpers"
 
 export enum ColorTheme {
@@ -65,17 +65,14 @@ export const colorPalettes = new Map<string, string[]>([
 ])
 
 export const assignColors = (
-  sectionsList: ISectionData[] | UncoloredSection[],
+  sectionsList: ISectionData[],
   theme: ColorTheme
 ): ISectionData[] => {
   const newSectionsList: ISectionData[] = []
 
   sectionsList.forEach((section) => {
-    const newColor = getNewSectionColor(newSectionsList, section, theme)
-    newSectionsList.push({
-      ...section,
-      color: newColor
-    })
+    section.color = getNewSectionColor(newSectionsList, section, theme)
+    newSectionsList.push(section)
   })
 
   return newSectionsList
@@ -83,7 +80,7 @@ export const assignColors = (
 
 export const getNewSectionColor = (
   sectionsList: ISectionData[],
-  addedSection: ISectionData | PartialSectionData,
+  addedSection: ISectionData,
   theme: ColorTheme
 ): string => {
   const colorList = colorPalettes.get(theme) ?? defaultColorList

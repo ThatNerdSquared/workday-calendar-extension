@@ -1,6 +1,6 @@
 import Browser from "webextension-polyfill"
 import { findCourseId } from "../backends/scheduler/nameSearchApi"
-import { ISectionData, PartialSectionData } from "../content/App//App.types"
+import { ISectionData } from "../content/App//App.types"
 import { handleProgressUpdate } from "../content/ProgressBar/ProgressBar"
 import {
   assignColors,
@@ -13,10 +13,13 @@ const readSectionData = async (): Promise<ISectionData[]> => {
   if (oldSections.sections !== undefined) {
     console.log("Importing sections from sync storagearea...")
     await Browser.storage.sync.remove("sections")
-    return await populateCourseIDs(oldSections as PartialSectionData[])
+    await Browser.storage.local.set({ sections: oldSections })
   }
-  const colorizedSections = assignColors(oldSections.sections, ColorTheme.Green)
-  return colorizedSections
+  const rawSections = await Browser.storage.local.get("sections")
+  // no matter the version, we need to check for empty IDs as there is a
+  // chance queries for courseIDs failed, id could not be found, etc
+  const sectionsWithIDs = await populateCourseIDs(rawSections as ISectionData[])
+  return assignColors(sectionsWithIDs, ColorTheme.Green)
 }
 
 const writeSectionData = async (newSections: ISectionData[]) => {
@@ -24,21 +27,25 @@ const writeSectionData = async (newSections: ISectionData[]) => {
 }
 
 const populateCourseIDs = async (
-  oldSections: PartialSectionData[]
+  oldSections: ISectionData[]
 ): Promise<ISectionData[]> => {
   const newSections = []
   for (const section of oldSections) {
-    // we await each call individually here to prevent workday
-    // from erroring out due to too many concurrent requests
-    const newSection = {
-      ...section,
-      // eslint-disable-next-line no-await-in-loop
-      courseID: await findCourseId(section.code),
+    if (!section.courseID) {
+      // we await each call individually here to prevent workday
+      // from erroring out due to too many concurrent requests
+      const newSection = {
+        ...section,
+        // eslint-disable-next-line no-await-in-loop
+        courseID: (await findCourseId(section.code)) ?? undefined,
+      }
+      newSections.push(newSection)
+      continue
     }
-    newSections.push(newSection)
+    newSections.push(section)
     handleProgressUpdate(newSections.length / oldSections.length)
   }
-  return assignColors(newSections, ColorTheme.Green)
+  return newSections
 }
 
 export { readSectionData, writeSectionData }

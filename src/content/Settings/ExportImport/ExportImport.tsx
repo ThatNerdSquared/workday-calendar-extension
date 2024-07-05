@@ -9,7 +9,10 @@ import ExportImportIndividual, {
 import { findCourseInfo } from "../../../backends/scheduler/nameSearchApi"
 import { useContext } from "react"
 import { ModalDispatchContext, ModalPreset } from "../../ModalLayer"
-import { ProgressBar, handleProgressUpdate } from "../../ProgressBar/ProgressBar"
+import {
+  ProgressBar,
+  handleProgressUpdate,
+} from "../../ProgressBar/ProgressBar"
 import { findCourseInfo } from "../../../backends/scheduler/nameSearchApi"
 
 interface IProps {
@@ -51,7 +54,6 @@ const ExportImport = ({ sections, setSections }: IProps) => {
     }
     reader.readAsText(file)
   }
-
 
   const handleSectionImport = async (sections: ISectionData[]) => {
     const fetchedSections: ISectionData[] = []
